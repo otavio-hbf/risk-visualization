@@ -5,7 +5,7 @@ import random
 app = Flask(__name__)
 
 # Load the CSV file into a DataFrame
-df = pd.read_csv('/home/usr/Documents/notebooks/streamlit-app/data/test_data.csv')
+df = pd.read_csv('../data/test_data.csv')
 
 
 @app.route('/random', methods=['GET'])
