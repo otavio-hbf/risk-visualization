@@ -9,8 +9,8 @@ import json
 class Utils:
 
     def __init__(self):
-        self.model = load("/home/usr/Documents/notebooks/streamlit-app/models/xgb_cpu.joblib")
-        self.data = pd.read_csv("/home/usr/Documents/notebooks/streamlit-app/data/test_data.csv")
+        self.model = load("../models/xgb_cpu.joblib")
+        self.data = pd.read_csv("../data/test_data.csv")
         self.max_size = len(self.data)
         self.risk_arr = []
         self.sum_dl_list = []
