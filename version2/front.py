@@ -4,6 +4,53 @@ import time
 import matplotlib.pyplot as plt
 from utils import Utils
 import numpy as np
+import plotly.graph_objs as go
+from plotly.subplots import make_subplots
+
+def plot_gauge(cpu_value, title):
+    cpu_percentage = cpu_value * 100
+    if cpu_percentage < 30:
+        color = "green"
+    elif 30 <= cpu_percentage < 60:
+        color = "orange"
+    else:
+        color = "red"
+    
+    fig = go.Figure(go.Indicator(
+        mode="gauge+number",
+        value=cpu_percentage,
+        domain={'x': [0, 1], 'y': [0, 1]},
+        number={
+            'suffix': "%",
+            'font': {'size': 24, 'color': color}
+        },
+        gauge={
+            'axis': {'range': [0, 100], 'visible': False},
+            'bar': {'color': color},
+            'bgcolor': "rgba(0,0,0,0)",
+            'borderwidth': 0,
+            'shape': "angular",
+            'threshold': {
+                'line': {'color': "white", 'width': 4},
+                'thickness': 0.75,
+                'value': cpu_percentage
+            }
+        },
+        title={
+            'text': f"<b>{title}</b>",
+            'font': {'size': 16},
+            'align': 'center'
+        }
+    ))
+
+    fig.update_layout(
+        height=150,
+        margin=dict(l=10, r=10, t=30, b=10),
+        paper_bgcolor="rgba(0,0,0,0)",
+        font={'color': "white", 'family': "Arial"}
+    )
+    
+    return fig
 
 
 def plot_scatter(x, y, risk, c_list, xlim, ylim):
@@ -30,6 +77,7 @@ def color(risk):
 
 
 def main():
+    st.header("Failure Predictor")
     c1, c2= st.columns(2)
     app = Utils()
 
@@ -40,15 +88,21 @@ def main():
 
     with st.container():
         c1.write("Risk Level")
-        c2.write("Cpu Usage")
+        c2.write("MCS")
 
         with c1:
             last_rows = []
             chart = st.line_chart(last_rows)
         with c2:
-            chart_data = pd.DataFrame()
-            chart_2 = st.bar_chart(chart_data)
-
+            st.write("")
+        
+        # Create a container for CPU Usage
+        with st.container():
+            st.markdown("CPU Usage")
+        
+            # Creating a single container for all gauge plots
+            gauge_cols = st.columns(4)  # Create 4 columns for the gauges
+            gauge_plots = [col.empty() for col in gauge_cols]  
 
         chart_data3 = pd.DataFrame()
         chart_3 = st.scatter_chart(chart_data3)
@@ -66,10 +120,9 @@ def main():
                 chart.add_rows(pred)
                 progress_bar.progress(i)
                         
-            with chart_2.container():
-                chart_2_data = sample[['cpu_1', 'cpu_2', 'cpu_3', 'cpu_4']]
-                data2 = pd.DataFrame({"name" : ['cpu_1', 'cpu_2', 'cpu_3', 'cpu_4'], "cpu": chart_2_data.values[0]})
-                st.bar_chart(data2, x='name',y='cpu')
+            cpu_values = sample[['cpu_1', 'cpu_2', 'cpu_3', 'cpu_4']].values[0]
+            for idx, cpu_val in enumerate(cpu_values):
+                gauge_plots[idx].plotly_chart(plot_gauge(cpu_val, f'CPU {idx+1}'), use_container_width=True)
 
 
             with chart_3:
