@@ -77,6 +77,7 @@ def color(risk):
 
 
 def main():
+    st.set_page_config(page_title="Failure Predictor", page_icon=":material/search_insights:", layout="centered", initial_sidebar_state="auto", menu_items=None)
     st.header("Failure Predictor")
     c1, c2= st.columns(2)
     app = Utils()
