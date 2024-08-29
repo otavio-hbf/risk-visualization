@@ -9,7 +9,7 @@ import json
 class Utils:
 
     def __init__(self):
-        self.model = load("/home/usr/Documents/notebooks/streamlit-app/models/xgb_cpu.joblib")
+        self.model = load("../models/xgb_cpu.joblib")
         self.data = pd.DataFrame()
         self.max_size = len(self.data)
         self.risk_arr = []
@@ -24,8 +24,6 @@ class Utils:
         elif(name =="risk"): self.risk_list.append(data)
         elif(name =="category"): self.category_list.append(data)
         else: print(f"impossible to update {name} list")
-
-        
 
 
     def update_data(self, sample, prediction):
