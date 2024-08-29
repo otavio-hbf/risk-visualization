@@ -9,9 +9,9 @@ from plotly.subplots import make_subplots
 
 def plot_gauge(cpu_value, title):
     cpu_percentage = cpu_value * 100
-    if cpu_percentage < 30:
+    if cpu_percentage < 80:
         color = "green"
-    elif 30 <= cpu_percentage < 60:
+    elif 80 <= cpu_percentage < 90:
         color = "orange"
     else:
         color = "red"
@@ -97,12 +97,9 @@ def main():
         with c2:
             st.write("")
         
-        # Create a container for CPU Usage
         with st.container():
             st.markdown("CPU Usage")
-        
-            # Creating a single container for all gauge plots
-            gauge_cols = st.columns(4)  # Create 4 columns for the gauges
+            gauge_cols = st.columns(4)  
             gauge_plots = [col.empty() for col in gauge_cols]  
 
         chart_data3 = pd.DataFrame()
