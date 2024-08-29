@@ -4,6 +4,9 @@ import time
 import plotly.graph_objs as go
 import altair as alt
 from utils import Utils
+import numpy as np
+import plotly.express as px
+import altair as alt
 
 # Graphical Functions
 def plot_gauge(cpu_value, title):
@@ -41,7 +44,6 @@ def plot_gauge(cpu_value, title):
             'align': 'center'
         }
     ))
-
     fig.update_layout(
         height=150,
         margin=dict(l=10, r=10, t=30, b=10),
@@ -51,13 +53,15 @@ def plot_gauge(cpu_value, title):
     
     return fig
 
+
 def plot_scatter(df, xlim, ylim):
     source = df.copy()
     
     chart = alt.Chart(source).mark_circle().encode(
-        x=alt.X('downlink', scale=alt.Scale(domain=[0, xlim])),
-        y=alt.Y('uplink', scale=alt.Scale(domain=[0, ylim])),
-        color=alt.Color('category', scale=alt.Scale(domain=['safe','moderate risk','dangerous'], range=['green','yellow','red']))
+
+        x = alt.X('downlink', scale=alt.Scale(domain=[0, xlim])),
+        y = alt.Y('uplink', scale=alt.Scale(domain=[0, ylim])),
+        color=alt.Color('category', scale=alt.Scale(domain=['safe','moderate risk','dangerous'], range=['green','yellow','red'])) 
     ).interactive()
 
     st.altair_chart(chart, use_container_width=True)
