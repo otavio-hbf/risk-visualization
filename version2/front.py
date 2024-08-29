@@ -4,29 +4,21 @@ import time
 import matplotlib.pyplot as plt
 from utils import Utils
 import numpy as np
+import plotly.graph_objects as go
+import plotly.express as px
+import altair as alt
 
+def plot_scatter(df, xlim, ylim):
+    source = df.copy()
+    
+    chart = alt.Chart(source).mark_circle().encode(
 
-def plot_scatter(x, y, risk, c_list, xlim, ylim):
+        x = alt.X('downlink', scale=alt.Scale(domain=[0, xlim])),
+        y = alt.Y('uplink', scale=alt.Scale(domain=[0, ylim])),
+        color=alt.Color('category', scale=alt.Scale(domain=['safe','moderate risk','dangerous'], range=['green','yellow','red'])) 
+    ).interactive()
 
-    fig = plt.figure(figsize=(10, 6))
-    plt.scatter(x, y, s=100, color=c_list , label='Data Points')
-    plt.xlabel('Downlink')
-    plt.ylabel('Uplink')
-    plt.title('Downlink x Uplink : Risk Assesment')
-    plt.xlim(xlim)
-    plt.ylim(ylim)
-    plt.legend()
-
-
-    st.pyplot(fig)
-
-def color(risk):
-    if(risk > 0.6):
-        return "red"
-    elif(risk < 0.3):
-        return "green"
-    else:
-        return "yellow"
+    st.altair_chart(chart, use_container_width=True)
 
 
 def main():
@@ -73,14 +65,8 @@ def main():
 
 
             with chart_3:
-                app.update_list("dl", app.get_sum(sample, dl=True))
-                app.update_list("ul", app.get_sum(sample, dl=False))
-                app.update_list("risk", pred[0])
-                app.update_list("color", color(pred[0]))
-
-                data3 = pd.DataFrame({"downlink" : app.sum_dl_list, "uplink": app.sum_ul_list, "risk":app.risk_list, "color":app.color_list})
-
-                plot_scatter(data3['downlink'].values, data3['uplink'].values, data3['risk'].values, data3['color'].values, (0, 60000), (0,100000))
+                app.update_data(sample, pred[0])
+                plot_scatter(app.get_data(), 100000, 60000)
 
             time.sleep(1)
 
