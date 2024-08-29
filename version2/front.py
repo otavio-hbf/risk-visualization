@@ -73,6 +73,12 @@ def color(risk):
     else:
         return "yellow"
 
+def link_risk_icon(risk_analysis_result):
+    if risk_analysis_result == "Mean Risk drop or steady risk":
+        return "https://i.imgur.com/17lYTAp.png"
+    elif risk_analysis_result == "Significant Mean Risk increase":
+        return "https://i.imgur.com/sWC2ygJ.png"
+    
 def main():
     st.set_page_config(page_title="Failure Predictor", page_icon=":material/search_insights:", layout="centered", initial_sidebar_state="auto")
     
@@ -86,13 +92,20 @@ def main():
         c3, c4 = st.columns([2, 1])
         with c3:
             st.markdown("### STATUS")
-            status_text = st.empty()
-            progress_bar = st.empty() 
-            status_display = st.empty() 
-            status_display.write(f"{risk_analysis_result}")
+            status_cols = st.columns([0.1, 0.9])
+            with status_cols[0]:
+                icon = st.empty()
+            with status_cols[1]:
+                status_display = st.empty() 
+                status_display.write(f"{risk_analysis_result}")
         with c4:
-            st.markdown("### TITLE")
-            run_button = st.button("RUN", type='primary')
+            st.markdown("### PROGRESS")
+            progress_cols = st.columns([0.15, 0.85])
+            with progress_cols[0]:
+                status_text = st.empty()
+            with progress_cols[1]:
+                progress_bar = st.empty() 
+            st.button("RUN", type='secondary', help="Run the Failure Predictor")
         
         c1, c2 = st.columns([2, 1]) 
         with c1:
@@ -119,6 +132,7 @@ def main():
                 pred = [app.make_pred(sample)]
                 risk_analysis_result = app.risk_analysis(pred)
                 status_display.write(f"{risk_analysis_result}")  
+                icon.image(link_risk_icon(risk_analysis_result))
 
                 with c1:
                     chart.add_rows(pred)
@@ -130,7 +144,7 @@ def main():
                 with chart_3:
                     app.update_data(sample, pred[0])
                     plot_scatter(app.get_data(), 100000, 60000)
-                status_text.text("%i%% Complete" % i)
+                status_text.text("%i%%" % i)
                 progress_bar.progress(i)  
 
                 time.sleep(1)
