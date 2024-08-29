@@ -104,6 +104,7 @@ def main():
 
         chart_data3 = pd.DataFrame()
         chart_3 = st.scatter_chart(chart_data3)
+        st.image("https://i.imgur.com/dghLTqg.png")
 
         for i in range(1, 100, 2):
 
@@ -132,11 +133,11 @@ def main():
                 data3 = pd.DataFrame({"downlink" : app.sum_dl_list, "uplink": app.sum_ul_list, "risk":app.risk_list, "color":app.color_list})
 
                 plot_scatter(data3['downlink'].values, data3['uplink'].values, data3['risk'].values, data3['color'].values, (0, 60000), (0,100000))
-
+        
             time.sleep(1)
-
+        st.button("run")
         progress_bar.empty()
-    st.button("run")
+    
 
 if __name__ == "__main__":
     main()
