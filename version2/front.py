@@ -5,7 +5,8 @@ import matplotlib.pyplot as plt
 from utils import Utils
 import numpy as np
 import plotly.graph_objs as go
-from plotly.subplots import make_subplots
+import plotly.express as px
+import altair as alt
 
 def plot_gauge(cpu_value, title):
     cpu_percentage = cpu_value * 100
@@ -52,92 +53,91 @@ def plot_gauge(cpu_value, title):
     
     return fig
 
+def plot_scatter(df, xlim, ylim):
+    source = df.copy()
+    
+    chart = alt.Chart(source).mark_circle().encode(
 
-def plot_scatter(x, y, risk, c_list, xlim, ylim):
+        x = alt.X('downlink', scale=alt.Scale(domain=[0, xlim])),
+        y = alt.Y('uplink', scale=alt.Scale(domain=[0, ylim])),
+        color=alt.Color('category', scale=alt.Scale(domain=['safe','moderate risk','dangerous'], range=['green','yellow','red'])) 
+    ).interactive()
 
-    fig = plt.figure(figsize=(10, 6))
-    plt.scatter(x, y, s=100, color=c_list , label='Data Points')
-    plt.xlabel('Downlink')
-    plt.ylabel('Uplink')
-    plt.title('Downlink x Uplink : Risk Assesment')
-    plt.xlim(xlim)
-    plt.ylim(ylim)
-    plt.legend()
-
-
-    st.pyplot(fig)
+    st.altair_chart(chart, use_container_width=True)
 
 def color(risk):
-    if(risk > 0.6):
+    if risk > 0.6:
         return "red"
-    elif(risk < 0.3):
+    elif risk < 0.3:
         return "green"
     else:
         return "yellow"
 
-
 def main():
-    st.set_page_config(page_title="Failure Predictor", page_icon=":material/search_insights:", layout="centered", initial_sidebar_state="auto", menu_items=None)
-    st.header("Failure Predictor")
-    c1, c2= st.columns(2)
-    app = Utils()
-
-    progress_bar = st.sidebar.progress(0)
-    status_text = st.sidebar.empty()
-    risk_text = st.sidebar.empty()
+    st.set_page_config(page_title="Failure Predictor", page_icon=":material/search_insights:", layout="centered", initial_sidebar_state="auto")
     
-
+    st.title(":material/search_insights: FAILURE PREDICTOR")
+    
+    app = Utils()
+    
+    risk_analysis_result = "Awaiting Prediction"
+    
     with st.container():
-        c1.write("Risk Level")
-        c2.write("MCS")
-
+        c3, c4 = st.columns([2, 1])
+        with c3:
+            st.markdown("### STATUS")
+            status_text = st.empty()
+            progress_bar = st.empty() 
+            status_display = st.empty() 
+            status_display.write(f"{risk_analysis_result}")
+        with c4:
+            st.markdown("### TITLE")
+            run_button = st.button("RUN", type='primary')
+        
+        c1, c2 = st.columns([2, 1]) 
         with c1:
+            st.markdown("### RISK LEVEL")
             last_rows = []
             chart = st.line_chart(last_rows)
-        with c2:
-            st.write("")
-        
-        with st.container():
-            st.markdown("CPU Usage")
-            gauge_cols = st.columns(4)  
-            gauge_plots = [col.empty() for col in gauge_cols]  
 
+        with c2:
+            st.markdown("### CPU USAGE")
+            gauge_cols = st.columns(2)
+            gauge_plots = [col.empty() for col in gauge_cols] 
+
+            gauge_cols2 = st.columns(2) 
+            gauge_plots.extend([col.empty() for col in gauge_cols2]) 
+
+        st.markdown("### RISK ASSESSMENT\nDownlink x Uplink")
         chart_data3 = pd.DataFrame()
-        chart_3 = st.scatter_chart(chart_data3)
+        chart_3 = st.empty()
         st.image("https://i.imgur.com/dghLTqg.png")
 
-        for i in range(1, 100, 2):
-
-            sample = app.get_sample()
-
-
-            pred = [app.make_pred(sample)]
-            risk_text.text(app.risk_analysis(pred))
-
-            with c1:
-                status_text.text("%i%% Complete" % i)
-                chart.add_rows(pred)
-                progress_bar.progress(i)
-                        
-            cpu_values = sample[['cpu_1', 'cpu_2', 'cpu_3', 'cpu_4']].values[0]
-            for idx, cpu_val in enumerate(cpu_values):
-                gauge_plots[idx].plotly_chart(plot_gauge(cpu_val, f'CPU {idx+1}'), use_container_width=True)
-
-
-            with chart_3:
-                app.update_list("dl", app.get_sum(sample, dl=True))
-                app.update_list("ul", app.get_sum(sample, dl=False))
-                app.update_list("risk", pred[0])
-                app.update_list("color", color(pred[0]))
-
-                data3 = pd.DataFrame({"downlink" : app.sum_dl_list, "uplink": app.sum_ul_list, "risk":app.risk_list, "color":app.color_list})
-
-                plot_scatter(data3['downlink'].values, data3['uplink'].values, data3['risk'].values, data3['color'].values, (0, 60000), (0,100000))
         
-            time.sleep(1)
-        st.button("run")
-        progress_bar.empty()
-    
+        for i in range(1, 100, 2): 
+                sample = app.get_sample()
+                pred = [app.make_pred(sample)]
+                risk_analysis_result = app.risk_analysis(pred)
+                status_display.write(f"{risk_analysis_result}")  
+
+                with c1:
+                    chart.add_rows(pred)
+
+                cpu_values = sample[['cpu_1', 'cpu_2', 'cpu_3', 'cpu_4']].values[0]
+                for idx, cpu_val in enumerate(cpu_values):
+                    gauge_plots[idx].plotly_chart(plot_gauge(cpu_val, f'CPU {idx+1}'), use_container_width=True)
+
+                with chart_3:
+                    app.update_data(sample, pred[0])
+                    plot_scatter(app.get_data(), 100000, 60000)
+                status_text.text("%i%% Complete" % i)
+                progress_bar.progress(i)  
+
+                time.sleep(1)
+ 
+
+
 
 if __name__ == "__main__":
     main()
+
