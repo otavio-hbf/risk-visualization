@@ -57,7 +57,7 @@ def plot_gauge(cpu_value, title):
 def plot_scatter(df, xlim, ylim):
     source = df.copy()
     
-    chart = alt.Chart(source).mark_circle().encode(
+    chart = alt.Chart(source).mark_circle(size=100).encode(
 
         x = alt.X('downlink', scale=alt.Scale(domain=[0, xlim])),
         y = alt.Y('uplink', scale=alt.Scale(domain=[0, ylim])),
