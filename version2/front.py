@@ -190,7 +190,7 @@ def main():
 
         status_text.markdown(f'<p class="progress_text">{i}% complete</p>', unsafe_allow_html=True)
         progress_bar.progress(i)  
-        #progress_bar.progress(i, f'{i}% complete')  
+
 
         time.sleep(1)
 
