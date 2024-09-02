@@ -11,3 +11,4 @@ To run the server.py file:
 To run the front.py file:
   * Build the container with _docker-compose up --build_
 
+![chrome-capture-2024-9-2](https://github.com/user-attachments/assets/aff0be1a-3bd9-4a78-a572-a14ff728f7ef)
