@@ -43,7 +43,7 @@ class Utils:
 
     def get_sample(self):
         
-        sample_json = requests.get("http://host.docker.internal:5000/random")
+        sample_json = requests.get("http://localhost:5000/random")
         json_string = sample_json.text
         json_dict = json.loads(json_string)
 

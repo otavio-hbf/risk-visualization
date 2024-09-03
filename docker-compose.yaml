@@ -3,9 +3,8 @@ version: '3.12'
 services:
   streamlit:
     build:
-      context: .  # Path to the directory containing the Dockerfile
-    ports:
-      - "8501:8501"  # Map port 8501 on the host to port 8501 in the container
+      context: .
+    network_mode: "host"
     volumes:
-      - .:/code  # Mount the current directory to /code in the container
+      - .:/code
     command: streamlit run version2/front.py
