@@ -112,7 +112,7 @@ def font_style():
         .progress_text {
             font-family: 'Inter', sans-serif;
             font-weight: 300;
-            font-size: 14px;
+            font-size: 13px;
                 }
         </style>
         """, unsafe_allow_html=True))
@@ -178,7 +178,7 @@ def main():
         chart_3 = st.empty()
 
     # Main Loop for Updating Data
-    for i in range(1, 100, 2): 
+    for i in range(0, 100, 2): 
         sample = app.get_sample()
         pred = app.make_pred(sample)
         pred_percentage = pred * 100  
