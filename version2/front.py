@@ -17,7 +17,6 @@ def plot_gauge(cpu_value, title):
         color = "orange"
     else:
         color = "red"
-
     fig = go.Figure(go.Indicator(
         mode="gauge+number",
         value=cpu_percentage,
@@ -44,29 +43,43 @@ def plot_gauge(cpu_value, title):
             'align': 'center'
         }
     ))
-
-    
     fig.update_layout(
         height=220,
         margin=dict(l=10, r=10, t=20, b=10),
         paper_bgcolor="rgba(0,0,0,0)",
         font={'color': "white", 'family': "Inter"}
     )
-    
     return fig
-
 
 def plot_scatter(df, xlim, ylim):
     source = df.copy()
-    
     chart = alt.Chart(source).mark_circle(size=100).encode(
 
         x = alt.X('downlink', scale=alt.Scale(domain=[0, xlim])),
         y = alt.Y('uplink', scale=alt.Scale(domain=[0, ylim])),
         color=alt.Color('category', scale=alt.Scale(domain=['safe','moderate risk','dangerous'], range=['green','yellow','red'])) 
     ).interactive()
-
     st.altair_chart(chart, use_container_width=True)
+
+def plot_risk_level(data):
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(
+        x=data.index,
+        y=data['Risk'],
+        mode='lines',
+        line=dict(color='orange'),
+        #name='Risk Level'
+    ))
+    fig.update_layout(
+        xaxis_title='',
+        yaxis_title='%',
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        font={'color': "white", 'family': "Inter"},
+        margin=dict(l=10, r=10, t=10, b=10),
+        height=400
+    )
+    return fig
 
 # Styling Functions
 def link_risk_icon(risk_analysis_result):
@@ -109,8 +122,7 @@ def add_vertical_space(lines: int = 1):
         st.write("")
 
 def main():
-
-    #General Configuration and Styling
+    # General Configuration and Styling
     st.set_page_config(page_title="Failure Predictor", page_icon=":material/search_insights:", layout="wide", initial_sidebar_state="auto")
     app = Utils()
     font_style()
@@ -118,7 +130,7 @@ def main():
     st.title(":material/search_insights: FAILURE PREDICTOR", anchor=False)
     add_vertical_space(1)
 
-    #About Section
+    # About Section
     c1, c2 = st.columns([0.6, 0.4])
     with c1:
         with st.expander("About"):
@@ -130,7 +142,7 @@ def main():
             st.image("https://i.imgur.com/dghLTqg.png", use_column_width=False, width=600) 
     add_vertical_space(1)
 
-    #Progress, Status and CPU Usage Section
+    # Progress, Status and CPU Usage Section
     risk_analysis_result = "Awaiting Prediction"
     c3, c4 = st.columns([0.4, 0.6], gap="large")
     with c3:
@@ -153,43 +165,44 @@ def main():
         gauge_cols = st.columns(4)
         gauge_plots = [col.empty() for col in gauge_cols] 
 
-
-    
-    #Risk Assessment Section and Risk Level
-    c5, c6 = st.columns([0.5, 0.5], gap="large") 
+    # Risk Level and Risk Assessment Section
+    c5, c6 = st.columns([0.4, 0.6], gap="large") 
     with c5:
+        st.markdown(f'<p class="title">Risk Level</p>', unsafe_allow_html=True)
+        last_rows = pd.DataFrame(columns=['Risk'])
+        chart = st.line_chart(last_rows)
+
+    with c6:
         st.markdown(f'<p class="title">Risk Assessment</p>', unsafe_allow_html=True)
         st.markdown(f'<p class="subtitle">DOWNLINK X UPLINK</p>', unsafe_allow_html=True)
         chart_3 = st.empty()
 
-    with c6:
-        st.markdown(f'<p class="title">Risk Level</p>', unsafe_allow_html=True)
-        last_rows = []
-        chart = st.line_chart(last_rows)
-
-    #Main Loop
+    # Main Loop for Updating Data
     for i in range(1, 100, 2): 
         sample = app.get_sample()
-        pred = [app.make_pred(sample)]
+        pred = app.make_pred(sample)
+        pred_percentage = pred * 100  
+        pred_percentage = float(pred_percentage)  
         risk_analysis_result = app.risk_analysis(pred)
         status_display.markdown(f'<p class="status_text">{risk_analysis_result}</p>', unsafe_allow_html=True)
         icon.image(link_risk_icon(risk_analysis_result))
 
-        with c1:
-            chart.add_rows(pred)
+        # Risk Level Update
+        new_row = pd.DataFrame({'Risk': [pred_percentage]})
+        last_rows = pd.concat([last_rows, new_row]).reset_index(drop=True)
+        risk_fig = plot_risk_level(last_rows)
+        chart.plotly_chart(risk_fig)
 
         cpu_values = sample[['cpu_1', 'cpu_2', 'cpu_3', 'cpu_4']].values[0]
         for idx, cpu_val in enumerate(cpu_values):
             gauge_plots[idx].plotly_chart(plot_gauge(cpu_val, f'CPU {idx+1}'), use_container_width=True)
 
         with chart_3:
-            app.update_data(sample, pred[0])
+            app.update_data(sample, pred)
             plot_scatter(app.get_data(), 100000, 60000)
 
         status_text.markdown(f'<p class="progress_text">{i}% complete</p>', unsafe_allow_html=True)
-        progress_bar.progress(i)  
-
-
+        progress_bar.progress(i) 
         time.sleep(1)
 
 if __name__ == "__main__":
