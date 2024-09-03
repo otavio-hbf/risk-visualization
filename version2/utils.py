@@ -2,14 +2,13 @@ import pandas as pd
 import numpy as np
 from joblib import load
 from random import randint
-# from server import get_random_line
 import requests
 import json
 
 class Utils:
 
     def __init__(self):
-        self.model = load("../models/xgb_cpu.joblib")
+        self.model = load("models/xgb_cpu.joblib")
         self.data = pd.DataFrame()
         self.max_size = len(self.data)
         self.risk_arr = []
@@ -17,19 +16,18 @@ class Utils:
         self.sum_ul_list = []
         self.risk_list = []
         self.category_list = []
+        self.mcs_data = []
 
     def update_list(self,name, data):
         if(name == "dl"): self.sum_dl_list.append(data)
         elif(name =="ul"): self.sum_ul_list.append(data)
         elif(name =="risk"): self.risk_list.append(data)
         elif(name =="category"): self.category_list.append(data)
+        elif(name == "mcs"): self.mcs_data.append(data)
         else: print(f"impossible to update {name} list")
-
-        
 
 
     def update_data(self, sample, prediction):
-
         self.update_list("dl", self.get_sum(sample, dl=True)[0])
         self.update_list("ul", self.get_sum(sample, dl=False)[0])
         self.update_list("risk", prediction)
@@ -45,7 +43,7 @@ class Utils:
 
     def get_sample(self):
         
-        sample_json = requests.get("http://127.0.0.1:5000/random")
+        sample_json = requests.get("http://host.docker.internal:5000/random")
         json_string = sample_json.text
         json_dict = json.loads(json_string)
 
