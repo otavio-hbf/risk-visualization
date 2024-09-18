@@ -17,6 +17,7 @@ class Utils:
         self.risk_list = []
         self.category_list = []
         self.mcs_data = []
+        self.rolling_mean = []
 
     def update_list(self,name, data):
         if(name == "dl"): self.sum_dl_list.append(data)
@@ -24,14 +25,18 @@ class Utils:
         elif(name =="risk"): self.risk_list.append(data)
         elif(name =="category"): self.category_list.append(data)
         elif(name == "mcs"): self.mcs_data.append(data)
+        elif(name == "rolling"): self.rolling_mean.append(data)
         else: print(f"impossible to update {name} list")
 
 
+    
     def update_data(self, sample, prediction):
         self.update_list("dl", self.get_sum(sample, dl=True)[0])
         self.update_list("ul", self.get_sum(sample, dl=False)[0])
         self.update_list("risk", prediction)
         self.update_list("category", self.category(prediction))
+        self.update_list("rolling", ((np.mean(self.risk_arr[-4:])* 100) ))
+
 
         new_data = pd.DataFrame({"downlink" : self.sum_dl_list, "uplink": self.sum_ul_list, "risk":self.risk_list, "category":self.category_list})
         self.data = new_data
@@ -88,6 +93,9 @@ class Utils:
     def get_data(self):
         
         return self.data
+    
+    def get_roll_mean(self):
+        return self.rolling_mean
     
     def category(self, risk):
         if(risk > 0.6):

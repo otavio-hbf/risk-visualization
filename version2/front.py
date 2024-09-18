@@ -61,15 +61,24 @@ def plot_scatter(df, xlim, ylim):
     ).interactive()
     st.altair_chart(chart, use_container_width=True)
 
-def plot_risk_level(data):
+def plot_risk_level(data, rol):
     fig = go.Figure()
     fig.add_trace(go.Scatter(
         x=data.index,
         y=data['Risk'],
         mode='lines',
         line=dict(color='orange'),
-        #name='Risk Level'
+        name='Immediate Risk'
     ))
+
+    fig.add_trace(go.Scatter(
+        x=data.index,
+        y=rol,
+        mode='lines',
+        line=dict(color='cyan'),
+        name='Rolling Mean Risk'
+    ))
+
     fig.update_layout(
         xaxis_title='',
         yaxis_title='%',
@@ -190,7 +199,8 @@ def main():
         # Risk Level Update
         new_row = pd.DataFrame({'Risk': [pred_percentage]})
         last_rows = pd.concat([last_rows, new_row]).reset_index(drop=True)
-        risk_fig = plot_risk_level(last_rows)
+        rolling = app.get_roll_mean()
+        risk_fig = plot_risk_level(last_rows, rolling)
         chart.plotly_chart(risk_fig)
 
         cpu_values = sample[['cpu_1', 'cpu_2', 'cpu_3', 'cpu_4']].values[0]
